@@ -42,6 +42,8 @@ class UserService {
     }
   }
 
+
+  ///** -------------------  Obté un usuari per ID  ------------------- **//
   static Future<User> getUserById(String id) async {
     final response = await http.get(Uri.parse('$baseUrl/$id'));
 
@@ -52,17 +54,54 @@ class UserService {
     }
   }
 
-  static Future<User> updateUser(String id, User user) async {
-    final response = await http.put(
-      Uri.parse('$baseUrl/$id'),
-      headers: {'Content-Type': 'application/json'},
-      body: jsonEncode(user.toJson()),
-    );
 
-    if (response.statusCode == 200) {
-      return User.fromJson(jsonDecode(response.body));
-    } else {
-      throw Exception('Error actualitzant usuari: ${response.statusCode}');
+  ///** -------------------  Actualitza un usuari  ------------------- **//
+  static Future<bool> updateUser(User user) async {
+    final url = Uri.parse('http://localhost:9000/api/users/${user.id}');
+    final body = json.encode({
+      'name': user.name,
+      'age': user.age,
+      'email': user.email,
+    });
+
+    try {
+      final response = await http.put(
+        url,
+        headers: {'Content-Type': 'application/json'},
+        body: body,
+      );
+
+      return response.statusCode == 200;
+    } catch (e) {
+      print('Error al actualizar el usuario: $e');
+      return false;
+    }
+  }
+
+  /// -------------------  Cambia la contrasenya de l'usuari  ------------------- ///
+
+  static Future<bool> changePassword(
+    String userId,
+    String currentPassword,
+    String newPassword,
+  ) async {
+    final url = Uri.parse('http://localhost:9000/api/users/$userId/change-password');
+    final body = json.encode({
+      'currentPassword': currentPassword,
+      'newPassword': newPassword,
+    });
+
+    try {
+      final response = await http.put(
+        url,
+        headers: {'Content-Type': 'application/json'},
+        body: body,
+      );
+
+      return response.statusCode == 200;
+    } catch (e) {
+      print('Error al cambiar la contraseña: $e');
+      return false;
     }
   }
 

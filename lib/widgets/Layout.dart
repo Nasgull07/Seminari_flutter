@@ -71,11 +71,15 @@ class LayoutWrapper extends StatelessWidget {
             'Esborrar usuari', 
             Icons.delete_outline, 
             '/borrar'),
+
+
           _buildNavItem(
             context, 
             'Perfil', 
             Icons.account_circle, 
             '/profile'),
+
+            
           const Divider(),
           Padding(
             padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
@@ -128,7 +132,25 @@ class LayoutWrapper extends StatelessWidget {
       ),
       onTap: () {
         Navigator.pop(context);
+        // Si la ruta es '/profile', pasa el userId como extra
+
+
+
+
+  /// -------------------  Crea el widget de la configuració del compte  ------------------- ///
+  
+      if (route == '/profile') {
+        final userId = Provider.of<UserProvider>(context, listen: false).currentUserId;
+        if (userId != null) {
+          context.go(route, extra: userId);
+        } else {
+          ScaffoldMessenger.of(context).showSnackBar(
+            const SnackBar(content: Text('Error: No se encontró el ID del usuario.')),
+          );
+        }
+      } else {
         context.go(route);
+      }
       },
     );
   }

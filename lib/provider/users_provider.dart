@@ -6,10 +6,23 @@ class UserProvider with ChangeNotifier {
   List<User> _users = [];
   bool _isLoading = false;
   String? _error;
+  String? _currentUserId;
 
   List<User> get users => _users;
   bool get isLoading => _isLoading;
   String? get error => _error;
+  String? get currentUserId => _currentUserId;
+
+
+  /// -------------------  Setter del currentUserId  ------------------- ///
+
+  void setCurrentUserId(String userId) {
+    _currentUserId = userId;
+    notifyListeners();
+  }
+
+
+
 
   void _setLoading(bool loading) {
     _isLoading = loading;
@@ -103,4 +116,5 @@ class UserProvider with ChangeNotifier {
       return false;
     }
   }
+ 
 }

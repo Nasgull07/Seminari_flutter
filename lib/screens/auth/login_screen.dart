@@ -1,7 +1,9 @@
 import 'package:flutter/material.dart';
 import 'package:go_router/go_router.dart';
+import 'package:provider/provider.dart';
 import 'package:seminari_flutter/components/my_textfield.dart';
 import 'package:seminari_flutter/components/my_button.dart';
+import 'package:seminari_flutter/provider/users_provider.dart';
 import 'package:seminari_flutter/services/auth_service.dart';
 
 class LoginPage extends StatelessWidget {
@@ -11,8 +13,8 @@ class LoginPage extends StatelessWidget {
   final passwordController = TextEditingController();
 
   void signUserIn(BuildContext context) async {
-    final authService = AuthService();
 
+    final authService = AuthService();
     final email = emailController.text;
     final password = passwordController.text;
 
@@ -25,7 +27,15 @@ class LoginPage extends StatelessWidget {
 
     if (result.containsKey('error')) {
       _showError(context, result['error']);
-    } else {
+    } 
+    
+    
+    else {  // Si el login es exitoso, se espera que el resultado contenga un userId
+      
+      final userId = result['userId']; //Obtenemos el userId del  login exitoso
+ 
+      Provider.of<UserProvider>(context, listen: false).setCurrentUserId(userId); // Establece el userId en el UserProvider
+
       context.go('/');
     }
   }

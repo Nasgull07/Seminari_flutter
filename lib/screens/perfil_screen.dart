@@ -1,13 +1,82 @@
 import 'package:flutter/material.dart';
 import 'package:go_router/go_router.dart';
+import 'package:seminari_flutter/models/user.dart';
+import 'package:seminari_flutter/services/UserService.dart';
 import '../widgets/Layout.dart';
 import '../services/auth_service.dart';
 
-class PerfilScreen extends StatelessWidget {
-  const PerfilScreen({super.key});
+
+/// -------------------  Pantalla de perfil d'usuari  ------------------- ///
+
+class PerfilScreen extends StatefulWidget {
+   final String userId;
+  const PerfilScreen({super.key, required this.userId});
+ @override
+  State<PerfilScreen> createState() => _PerfilScreenState();
+}
+
+
+
+class _PerfilScreenState extends State<PerfilScreen> {
+  late Future<User> _userFuture;
+
+
+  /// -------------------  Inicialitza l'usuari fent un getUserById  ------------------- ///
+  @override
+  void initState() {
+    super.initState();
+    _userFuture = UserService.getUserById(widget.userId);
+  }
+
+
+
+
+  /// -------------------  Navega a la pantalla de edició del perfil  ------------------- ///
+
+  void _navigateToEditProfile(BuildContext context) {
+  _userFuture.then((user) {
+    context.go('/profile/edit', extra: user); 
+  }).catchError((error) {
+    ScaffoldMessenger.of(context).showSnackBar(
+      SnackBar(content: Text('Error al cargar el perfil: $error')),
+    );
+  });
+  }
+  
+  /// -------------------  Navega a la pantalla de canvi de contrasenya  ------------------- ///
+
+  void _navigateToChangePassword(BuildContext context) {
+  context.go('/profile/change-password', extra: widget.userId);
+}
+
+
+
+
+  /// -------------------  Crea el widget de la pantalla de perfil  ------------------- ///
+
+   @override
+  Widget build(BuildContext context) {
+    return FutureBuilder<User>(
+      future: _userFuture,
+      builder: (context, snapshot) {
+        if (snapshot.connectionState == ConnectionState.waiting) {
+          return const Center(child: CircularProgressIndicator());
+        } else if (snapshot.hasError) {
+          return Center(child: Text('Error: ${snapshot.error}'));
+        } else if (!snapshot.hasData) {
+          return const Center(child: Text('No se encontraron datos del usuario.'));
+        }
+
+        final user = snapshot.data!;
+        return _buildProfileScreen(context, user);
+      },
+    );
+  }
+
+  /// -------------------  Crea el widget de la pantalla de perfil  ------------------- ///
 
   @override
-  Widget build(BuildContext context) {
+  Widget _buildProfileScreen(BuildContext context, User user) {
     return LayoutWrapper(
       title: 'Perfil',
       child: SingleChildScrollView(
@@ -26,14 +95,14 @@ class PerfilScreen extends StatelessWidget {
                   ),
                   const SizedBox(height: 24),
                   Text(
-                    'Exemple',
+                    user.name,
                     style: Theme.of(context).textTheme.headlineMedium?.copyWith(
                       fontWeight: FontWeight.bold,
                     ),
                   ),
                   const SizedBox(height: 8),
                   Text(
-                    'demo@exemple.com',
+                    user.email,
                     style: Theme.of(
                       context,
                     ).textTheme.titleMedium?.copyWith(color: Colors.grey),
@@ -52,10 +121,10 @@ class PerfilScreen extends StatelessWidget {
                             context,
                             Icons.badge,
                             'ID',
-                            '67f8f3103368468b6e9d509c',
+                            user.id ?? 'N/A',
                           ),
                           const Divider(),
-                          _buildProfileItem(context, Icons.cake, 'Edat', '22'),
+                          _buildProfileItem(context, Icons.cake, 'Edat', user.age.toString()),
                         ],
                       ),
                     ),
@@ -163,18 +232,26 @@ class PerfilScreen extends StatelessWidget {
     );
   }
 
+  /// -------------------  Crea el widget de la configuració del compte  ------------------- ///
+
   Widget _buildSettingItem(
-    BuildContext context,
-    IconData icon,
-    String title,
-    String subtitle,
-  ) {
-    return ListTile(
-      leading: Icon(icon, color: Theme.of(context).colorScheme.primary),
-      title: Text(title),
-      subtitle: Text(subtitle),
-      trailing: const Icon(Icons.arrow_forward_ios, size: 16),
-      onTap: () {},
-    );
-  }
+  BuildContext context,
+  IconData icon,
+  String title,
+  String subtitle,
+) {
+  return ListTile(
+    leading: Icon(icon, color: Theme.of(context).colorScheme.primary),
+    title: Text(title),
+    subtitle: Text(subtitle),
+    trailing: const Icon(Icons.arrow_forward_ios, size: 16),
+    onTap: () {
+      if (title == 'Editar Perfil') {
+        _navigateToEditProfile(context);
+      } else if (title == 'Canviar contrasenya') {
+        _navigateToChangePassword(context);
+      }
+    },
+  );
+}
 }

@@ -18,30 +18,44 @@ class AuthService {
 
   //login
   Future<Map<String, dynamic>> login(String email, String password) async {
-    final url = Uri.parse('$_baseUrl/login');
+  final url = Uri.parse('$_baseUrl/login');
+  final body = json.encode({'email': email, 'password': password});
 
-    final body = json.encode({'email': email, 'password': password});
+  try {
+    print("Enviando solicitud POST a: $url");
+    final response = await http.post(
+      url,
+      headers: {'Content-Type': 'application/json'},
+      body: body,
+    );
 
-    try {
-      print("enviant solicitud post a: $url");
-      final response = await http.post(
-        url,
-        headers: {'Content-Type': 'application/json'},
-        body: body,
-      );
+    print("Respuesta recibida con código: ${response.statusCode}");
 
-      print("Resposta rebuda amb codi: ${response.statusCode}");
+    if (response.statusCode == 200) {
+      final responseData = json.decode(response.body);
 
-      if (response.statusCode == 200) {
-        return json.decode(response.body);
+      
+
+      if (responseData.containsKey('userId')) {
+
+        
+        isLoggedIn = true; 
+        return {'userId': responseData['userId']};  // Almaceno el ID del usuario para usarlo más tarde en la aplicación
+
+
       } else {
-        return {'error': 'email o contrasenya incorrectes'};
+        return {'error': 'Respuesta inválida del servidor'};
       }
-    } catch (e) {
-      print("Error al fer la solicitud: $e");
-      return {'error': 'Error de connexió'};
+    } else if (response.statusCode == 401) {
+      return {'error': 'Email o contraseña incorrectos'};
+    } else {
+      return {'error': 'Error del servidor: ${response.statusCode}'};
     }
+  } catch (e) {
+    print("Error al realizar la solicitud: $e");
+    return {'error': 'Error de conexión. Por favor, inténtalo de nuevo.'};
   }
+}
 
   void logout() {
     isLoggedIn = false; // Cambia el estado de autenticación a no autenticado
